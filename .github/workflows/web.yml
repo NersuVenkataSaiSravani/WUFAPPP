@@ -1,0 +1,52 @@
+name: Flask Web App Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Get code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Test application
+        run: |
+          python -m py_compile fapp.py
+
+      - name: Build
+        run: echo "Build successful"
+
+      - name: Deploy to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "fapp.py,requirements.txt"
+          target: "/home/ubuntu/fapp"
+
+      - name: Run application on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/fapp
+            pip3 install -r requirements.txt
+            pkill -f "python3 fapp.py" || true
+            nohup python3 fapp.py > app.log 2>&1 &
