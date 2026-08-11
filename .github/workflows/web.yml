@@ -46,7 +46,6 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/fapp
+            cd /home/ubuntu/addition-app
             pip3 install -r requirements.txt
-            pkill -f "python3 fapp.py" || true
-            nohup python3 fapp.py > app.log 2>&1 &
+            python3 fapp.py
