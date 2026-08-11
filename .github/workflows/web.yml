@@ -48,4 +48,4 @@ jobs:
           script: |
             cd /home/ubuntu/fapp
             python3 -m pip install -r requirements.txt --break-system-packages
-            python3 fapp.py
+            nohup python3 fapp.py > app.log 2>&1 &
