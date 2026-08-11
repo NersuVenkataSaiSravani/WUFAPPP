@@ -47,5 +47,5 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/fapp
-            python3 -m pip install -r requirements.txt
+            python3 -m pip install -r requirements.txt --break-system-packages
             python3 fapp.py
