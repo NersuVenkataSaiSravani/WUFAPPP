@@ -45,15 +45,14 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ubuntu/fapp
-            python3 -m pip install -r requirements.txt --break-system-packages
-            nohup python3 fapp.py > app.log 2>&1 &
-
          # script: |
-           # cd /home/ubuntu/fapp
-           # pip3 install -r requirements.txt
-           # python3 fapp.py
+            #cd /home/ubuntu/fapp
+           # python3 -m pip install -r requirements.txt --break-system-packages
+            #nohup python3 fapp.py > app.log 2>&1 &
+           script: |
+             cd /home/ubuntu/fapp
+             pip3 install -r requirements.txt
+             python3 fapp.py
 
       - name: Show application URL
         run: |
