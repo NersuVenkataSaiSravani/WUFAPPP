@@ -7,4 +7,4 @@ def home():
     return "Hello! My web application is deployed successfully."
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000)  #listen everyone on this server..
