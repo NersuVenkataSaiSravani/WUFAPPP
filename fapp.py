@@ -3,8 +3,8 @@ from flask import Flask
 app = Flask(__name__)
 
 @app.route("/")
-def home():
+def home()
     return "Hello! My web application is deployed successfully."
 
-if __name_ == "__main__":
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)  #listen everyone on this server..
