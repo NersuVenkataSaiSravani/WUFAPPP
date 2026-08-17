@@ -1,0 +1,43 @@
+name: Docker Deploy to EC2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Get Code
+        uses: actions/checkout@v4
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "Dockerfile,fapp.py,requirements.txt"
+          target: "/home/ubuntu/app"
+
+      - name: Build and Run Docker on EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/app
+
+            sudo docker stop flask-app || true
+            sudo docker rm flask-app || true
+
+            sudo docker build -t flask-app .
+
+            sudo docker run -d \
+              --name flask-app \
+              -p 5000:5000 \
+              flask-app
+
+            sudo docker ps
