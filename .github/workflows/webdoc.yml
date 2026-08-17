@@ -4,20 +4,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker:
-     runs-on: ubuntu-latest
+ docker:
+  runs-on: ubuntu-latest
+     
+  steps:
+    - name: Get Code
+      uses: actions/checkout@v4
 
- steps:
-  - name: Get Code
-    uses: actions/checkout@v4
+    - name: Build Docker Image
+      run: docker build -t flask-app .
 
-  - name: Build Docker Image
-    run: docker build -t flask-app .
+    - name: Docker Container
+      run: docker run -d -p 5000:5000 flask-app
 
-  - name: Docker Container
-    run: docker run -d -p 5000:5000 flask-app
-
-  - name: Test Apllication
-    run: |
-         sleep 5
-         curl http://localhost:5000
+    - name: Test Aplication
+      run: |
+        sleep 5
+        curl http://localhost:5000
