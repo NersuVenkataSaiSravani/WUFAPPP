@@ -1,13 +1,19 @@
-FROM python:3.11
+#Start with an image that already has Python 3.11 installed.
+FROM python:3.11   
 
-WORKDIR /fapp
+#This creates/uses a dir inside a docker image. From this point onwards Docker works inside fapp.
+WORKDIR /fapp 
 
-COPY requirements.txt .
+#Copy it into the current working directory
+COPY requirements.txt .    
 
 RUN pip install -r requirements.txt
 
-COPY . .
+ #This copies the rest of your application files into /fapp.
+COPY . .  
 
-EXPOSE 5000
+#Tell Docker the application uses port 5000.
+EXPOSE 5000     
 
-CMD ["python","fapp.py"]
+#Start the Flask application when the container starts.
+CMD ["python","fapp.py"]     
