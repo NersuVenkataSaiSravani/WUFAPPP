@@ -18,22 +18,24 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "Dockerfile,fapp.py,requirements.txt"  #copy these 3 files to EC2.
-          target: "/home/ubuntu/app"  #Destination on EC2.
+          source: "Dockerfile,fapp.py,requirements.txt"
+          target: "/home/ubuntu/app"
 
-      - name: Build and Run Docker on EC2  # Difference is SCP action-Copies Filees && SSH action-Runs Cmds.. 
-        uses: appleboy/ssh-action@v1 #This action connects to our EC2 using SSH.
+      - name: Build and Run Docker on EC2
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          script: |        #Everything underneath it is a Linux command that will be executed on your EC2. These cmds r running on EC2 not on windows Computer.            cd /home/ubuntu/app   
-            sudo docker stop flask-app || true   
-            sudo docker rm flask-app || true  
+          script: |
+            cd /home/ubuntu/app
 
-            sudo docker build -t flask-app .   
+            sudo docker stop flask-app || true
+            sudo docker rm flask-app || true
 
-            sudo docker run -d \    
+            sudo docker build -t flask-app .
+
+            sudo docker run -d \
               --name flask-app \
               -p 5000:5000 \
               flask-app
