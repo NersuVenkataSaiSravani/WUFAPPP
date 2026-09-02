@@ -30,9 +30,9 @@ jobs:
       - name: Tag Docker image
         run: |
           docker tag flask-app:latest \
-          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:latest
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:newer
 
       - name: Push Docker image to ECR
         run: |
           docker push \
-          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:latest
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:newer
