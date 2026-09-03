@@ -4,7 +4,7 @@ FROM python:3.11
 #This creates/uses a dir inside a docker image. From this point onwards Docker works inside fapp.
 WORKDIR /fapp 
 
-#Copy it into the current working directory
+#Copy it into the current working directory // copy the requirements and install the dependencies first.
 COPY requirements.txt .    
 
 RUN pip install -r requirements.txt
