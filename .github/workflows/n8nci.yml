@@ -1,0 +1,109 @@
+name: Flask Docker CI with AI Notifier
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image and Check Flask Application
+        id: validate
+        shell: bash
+        run: |
+          status="SUCCESS"
+          exit_code=0
+          ready=0
+
+          : > error-log.txt
+
+          echo "Building Docker image..."
+
+          if ! docker build -t flask-ci-app . > build-log.txt 2>&1; then
+            status="FAILURE"
+            exit_code=1
+            cat build-log.txt >> error-log.txt
+
+          else
+            echo "Starting Flask container..."
+
+            if docker run -d --name flask-ci-container -p 5000:5000 flask-ci-app; then
+
+              echo "Checking Flask application..."
+
+              for i in {1..30}; do
+                if curl -fsS http://localhost:5000/ -o response.txt; then
+                  if grep -Fq "Hello! My web application is deployed successfully." response.txt; then
+                    ready=1
+                    break
+                  else
+                    echo "Unexpected response from Flask application." >> error-log.txt
+                    cat response.txt >> error-log.txt
+                    break
+                  fi
+                fi
+
+                sleep 2
+              done
+
+              if [ "$ready" -ne 1 ]; then
+                status="FAILURE"
+                exit_code=1
+                docker logs flask-ci-container >> error-log.txt 2>&1 || true
+              fi
+
+            else
+              status="FAILURE"
+              exit_code=1
+              echo "Failed to start Docker container." >> error-log.txt
+              cat build-log.txt >> error-log.txt
+            fi
+          fi
+
+          if [ "$status" = "SUCCESS" ]; then
+            echo "Flask application started and returned the expected response."
+          fi
+
+          docker rm -f flask-ci-container 2>/dev/null || true
+
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+
+      - name: Send Results to n8n
+        if: always() && steps.validate.outcome != 'skipped'
+        env:
+          N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+          N8N_WEBHOOK_SECRET: ${{ secrets.N8N_WEBHOOK_SECRET }}
+          TEST_STATUS: ${{ steps.validate.outputs.status }}
+          TEST_EXIT_CODE: ${{ steps.validate.outputs.exit_code }}
+        run: |
+          jq -n \
+            --arg job "$GITHUB_WORKFLOW" \
+            --arg build_number "$GITHUB_RUN_NUMBER" \
+            --arg status "$TEST_STATUS" \
+            --arg result_code "$TEST_EXIT_CODE" \
+            --rawfile error_log error-log.txt \
+            '{job:$job, build_number:$build_number, status:$status, result_code:$result_code, error_log:$error_log}' \
+            > payload.json
+
+          curl --fail --show-error \
+            -X POST "$N8N_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "x-webhook-secret: $N8N_WEBHOOK_SECRET" \
+            --data-binary @payload.json
+
+      - name: Mark Workflow Failed if Validation Failed
+        if: steps.validate.outputs.status == 'FAILURE'
+        run: exit 1
